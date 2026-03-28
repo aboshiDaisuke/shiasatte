@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>shiasatte ― 完全版 ―</title>
+    <meta name="description" content="歩く×考える カジュアルへんろニクス。四国遍路を舞台にした物語。">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    /* Reader modal */
+    #reader-modal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 9999;
+        background: #000;
+        display: none;
+        flex-direction: column;
+    }
+    #reader-modal.open { display: flex; }
+
+    #reader-topbar {
+        height: 48px;
+        background: rgba(0,0,0,0.95);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        flex-shrink: 0;
+    }
+    #reader-topbar .reader-title {
+        color: #999;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+    .reader-btn {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .reader-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+    #reader-frame {
+        flex: 1;
+        border: none;
+        width: 100%;
+    }
+
+    #reader-navbar {
+        height: 48px;
+        background: rgba(0,0,0,0.95);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        flex-shrink: 0;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    #reader-navbar .nav-btn {
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 18px;
+        cursor: pointer;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.15s;
+    }
+    #reader-navbar .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    #reader-navbar .nav-center {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    #reader-page-info {
+        font-size: 0.75rem;
+        color: #666;
+        min-width: 80px;
+        text-align: center;
+        user-select: none;
+    }
+
+    /* Reader TOC panel */
+    #reader-toc {
+        position: fixed;
+        top: 0; left: -320px;
+        z-index: 10010;
+        width: 300px;
+        height: 100%;
+        background: rgba(30,30,30,0.98);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 2px 0 16px rgba(0,0,0,0.4);
+        transition: left 0.3s ease;
+        padding: 24px 0;
+        overflow-y: auto;
+    }
+    #reader-toc.open { left: 0; }
+    #reader-toc h3 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #666;
+        letter-spacing: 0.1em;
+        padding: 0 24px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 8px;
+    }
+    #reader-toc ul { list-style: none; padding: 0; margin: 0; }
+    #reader-toc li a {
+        display: block;
+        padding: 10px 24px;
+        color: #ccc;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background 0.15s;
+        border-left: 3px solid transparent;
+    }
+    #reader-toc li a:hover { background: rgba(255,255,255,0.05); }
+    #reader-toc li a.active { border-left-color: #fff; color: #fff; font-weight: 600; }
+    #reader-toc li.part a { font-weight: 700; font-size: 0.8rem; color: #777; padding-top: 18px; }
+
+    #reader-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 10005;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+    #reader-overlay.show { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body>
+    <nav class="navbar fade-in">
+        <div class="logo">SHIASATTE</div>
+        <div class="menu">
+            <a href="#about">Story</a>
+            <a href="javascript:void(0)" class="btn-outline" onclick="openReader()">Read Now</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-image" style="background-image: url('assets/ohenro_girl.png');"></div>
+        <div class="hero-content fade-in-up">
+            <h1>一人にさせてもらえないから、<br>孤独が少しほしかった。</h1>
+            <p>行けるとこまで行くんだ。気が変わったら止める。それでいいっしょ。</p>
+            <a href="javascript:void(0)" class="btn-primary" onclick="openReader(3)">旅に出る</a>
+        </div>
+    </header>
+
+    <section id="about" class="section about">
+        <div class="container fade-in-scroll">
+            <h2 class="section-title">物語の始まり</h2>
+            <div class="about-text">
+                <p>「ここにいてはいけない」——そう思った瞬間、明美は四国へ向かった。<br>
+                思いつきとは突発ではなく、かつて温めていたものが孵化しようとしているだけ。<br>
+                それは、自分に対する合図だった。</p>
+                <p>遍路とは、廻ることが目的ではない。<br>
+                ブラックボックス化した頭を整理し、なにかしらのアウトプットが導き出せれば、それで成功といえる。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="image-divider fade-in-scroll">
+       <div class="quote">
+           "流れに従って、流れに任せず。"
+       </div>
+    </section>
+
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; Studio4951 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Reader Modal -->
+    <div id="reader-modal">
+        <div id="reader-topbar">
+            <span class="reader-title">SHIASATTE ― 完全版 ―</span>
+            <button class="reader-btn" onclick="closeReader()">&#10005; 閉じる</button>
+        </div>
+        <iframe id="reader-frame" src="about:blank" allowfullscreen></iframe>
+        <div id="reader-navbar">
+            <button class="nav-btn" id="rbtn-toc" title="目次">&#9776;</button>
+            <div class="nav-center">
+                <button class="nav-btn" id="rbtn-prev" title="前のページ">&#9664;</button>
+                <span id="reader-page-info"></span>
+                <button class="nav-btn" id="rbtn-next" title="次のページ">&#9654;</button>
+            </div>
+            <div style="width:48px"></div>
+        </div>
+    </div>
+
+    <div id="reader-overlay"></div>
+    <nav id="reader-toc">
+        <h3>目次</h3>
+        <ul>
+            <li class="part"><a href="#" data-item="2">第一部　shiasatte</a></li>
+            <li><a href="#" data-item="3">第一章　百一匹目の女</a></li>
+            <li><a href="#" data-item="4">第二章　同行他者</a></li>
+            <li><a href="#" data-item="5">第三章　ラジオをなくした</a></li>
+            <li><a href="#" data-item="6">第四章　それでよかった</a></li>
+            <li class="part"><a href="#" data-item="7">第二部　大きな足のナナメから</a></li>
+            <li><a href="#" data-item="8">番外編・前編</a></li>
+            <li class="part"><a href="#" data-item="9">第三部　ここにいたらいいのに</a></li>
+            <li><a href="#" data-item="10">番外編・後編</a></li>
+        </ul>
+    </nav>
+
+    <script src="script.js"></script>
+    <script>
+    const readerModal = document.getElementById('reader-modal');
+    const readerFrame = document.getElementById('reader-frame');
+    const readerPageInfo = document.getElementById('reader-page-info');
+    const readerToc = document.getElementById('reader-toc');
+    const readerOverlay = document.getElementById('reader-overlay');
+    let pendingJump = null;
+    let bibiLoaded = false;
+
+    function getBibi() {
+        try {
+            const w = readerFrame.contentWindow;
+            return (w && w.R && w.I && w.I.Flipper) ? w : null;
+        } catch(e) { return null; }
+    }
+
+    function openReader(itemIndex) {
+        readerModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        if (readerFrame.src === 'about:blank' || !readerFrame.src.includes('bibi')) {
+            bibiLoaded = false;
+            pendingJump = itemIndex || null;
+            readerFrame.src = 'bibi/?book=shiasatte.epub';
+            waitForBibi();
+        } else if (!bibiLoaded) {
+            pendingJump = itemIndex || null;
+        } else if (itemIndex) {
+            jumpToItem(itemIndex);
+        }
+    }
+
+    function waitForBibi() {
+        // Poll until Bibi is fully initialized
+        const check = setInterval(() => {
+            const w = getBibi();
+            if (w) {
+                clearInterval(check);
+                bibiLoaded = true;
+                // Inject smooth transitions
+                try {
+                    const style = w.document.createElement('style');
+                    style.textContent = `
+                        #bibi-main { transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), -webkit-transform 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
+                        #bibi-main-book { transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease, -webkit-transform 0.4s cubic-bezier(0.22,1,0.36,1) !important; }
+                    `;
+                    w.document.head.appendChild(style);
+                } catch(e) {}
+
+                if (pendingJump) {
+                    setTimeout(() => jumpToItem(pendingJump), 300);
+                    pendingJump = null;
+                }
+            }
+        }, 300);
+    }
+
+    function jumpToItem(itemIndex) {
+        const w = getBibi();
+        if (!w || !w.R.Items[itemIndex]) return;
+        const targetPage = w.R.Items[itemIndex].Pages[0];
+        const targetIdx = w.R.Pages.indexOf(targetPage);
+        const curPages = w.R.Current.Pages || w.R.IntersectingPages;
+        const curIdx = curPages && curPages.length ? w.R.Pages.indexOf(curPages[0]) : 0;
+        const dist = targetIdx - curIdx;
+        if (dist !== 0) w.I.Flipper.flip(dist);
+        setTimeout(updateReaderPageInfo, 500);
+    }
+
+    function closeReader() {
+        readerModal.classList.remove('open');
+        document.body.style.overflow = '';
+        closeReaderToc();
+    }
+
+    function updateReaderPageInfo() {
+        const w = getBibi();
+        if (!w) return;
+        const cur = w.R.Current.Pages;
+        if (cur && cur.length) {
+            const first = w.R.Pages.indexOf(cur[0]) + 1;
+            const last = w.R.Pages.indexOf(cur[cur.length - 1]) + 1;
+            const total = w.R.Pages.length;
+            readerPageInfo.textContent = (first === last ? first : first + '-' + last) + ' / ' + total;
+        }
+    }
+
+    function openReaderToc() { readerToc.classList.add('open'); readerOverlay.classList.add('show'); }
+    function closeReaderToc() { readerToc.classList.remove('open'); readerOverlay.classList.remove('show'); }
+
+    document.getElementById('rbtn-toc').addEventListener('click', () => {
+        readerToc.classList.contains('open') ? closeReaderToc() : openReaderToc();
+    });
+    readerOverlay.addEventListener('click', closeReaderToc);
+
+    document.getElementById('rbtn-prev').addEventListener('click', () => {
+        const w = getBibi();
+        if (w) { w.I.Flipper.flip(-1); setTimeout(updateReaderPageInfo, 400); }
+    });
+    document.getElementById('rbtn-next').addEventListener('click', () => {
+        const w = getBibi();
+        if (w) { w.I.Flipper.flip(1); setTimeout(updateReaderPageInfo, 400); }
+    });
+
+    document.querySelectorAll('#reader-toc a[data-item]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const itemIndex = parseInt(link.dataset.item);
+            document.querySelectorAll('#reader-toc a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+            jumpToItem(itemIndex);
+            closeReaderToc();
+        });
+    });
+
+    // Keyboard: Escape to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && readerModal.classList.contains('open')) closeReader();
+    });
+
+    setInterval(updateReaderPageInfo, 1000);
+    </script>
+</body>
+</html>
